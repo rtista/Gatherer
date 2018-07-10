@@ -1,6 +1,7 @@
 # Third-party Imports
 import falcon
 import json
+from time import time
 
 
 class CollectorIdResource:
@@ -23,7 +24,7 @@ class CollectorIdResource:
             raise falcon.HTTPMissingParam('data')
 
         # TODO: Send the message
-        self.activemq_conn.send(queue, json.dumps(data).encode())
+        self.activemq_conn.send(queue, json.dumps({'data': data, 'timestamp': int(time())}).encode())
 
         # Answer the request
         resp.media = {
