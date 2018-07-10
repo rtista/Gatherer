@@ -1,5 +1,6 @@
 # Third-party Imports
 import falcon
+import json
 
 
 class CollectorIdResource:
@@ -15,12 +16,18 @@ class CollectorIdResource:
         if not str(queue).isalnum():
             raise falcon.HTTPInvalidParam('Invalid queue name.', 'queue')
 
-        # TODO: Create the message
+        # Create the message
+        data = req.media.get('data')
 
-        # TODO: Connect to ActiveMQ queue
+        if not data:
+            raise falcon.HTTPMissingParam('data')
 
         # TODO: Send the message
+        self.activemq_conn.send(queue, json.dumps(data).encode())
 
         # Answer the request
-        resp.media = {}
+        resp.media = {
+            'created': json.dumps(data),
+            'status': 'success'
+        }
         resp.status = falcon.HTTP_201
