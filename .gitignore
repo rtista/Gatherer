@@ -105,3 +105,6 @@ venv.bak/
 
 # vs code
 .vscode/
+
+# Dont version configuration files
+api/config/config.py
