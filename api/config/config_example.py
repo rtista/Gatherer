@@ -20,6 +20,7 @@ class Config:
         'port': 61613,
         'user': 'user',
         'pass': 'pass',
+        'stomp_version': '1.2'
     }
 
 
