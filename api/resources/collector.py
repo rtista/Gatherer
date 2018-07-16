@@ -23,8 +23,13 @@ class CollectorIdResource:
         if not data:
             raise falcon.HTTPMissingParam('data')
 
-        # TODO: Send the message
-        self.activemq_conn.send(queue, json.dumps({'data': data, 'timestamp': int(time())}).encode())
+        # Send the message
+        # TODO: Make the message persistent
+        self.activemq_conn.send(queue, 
+                                json.dumps({
+                                    'data': data, 
+                                    'timestamp': int(time())
+                                }).encode())
 
         # Answer the request
         resp.media = {
