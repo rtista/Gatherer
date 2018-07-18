@@ -2,13 +2,18 @@
 from stompest.protocol import StompSpec
 
 # Third-party imports
+from multiprocessing import Process
 from stompest.sync import Stomp
 
 
 class StompConsumer(object):
     """
-    Stomp consumer base class.
+    A StompConsumer is a process which consumes messages from a stomp connection.
+    
+    Args:
+        Process (multiprocessing.Process): An operation system process.
     """
+
     # Subscription headers
     HEADERS = {
             # Client-individual mode is necessary for concurrent processing
@@ -24,6 +29,7 @@ class StompConsumer(object):
             stomp_config (StompConfig): The Stomp connection configuration object.
             headers (Dict): The Stomp connection headers to be used.
         """
+        # super().__init__()
         self.queue = queue
         self.headers = headers
         self.conn = self.connect(stomp_config)
