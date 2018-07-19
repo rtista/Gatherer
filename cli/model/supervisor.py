@@ -8,7 +8,7 @@ class Supervisor(Process):
     and supervise the work of all its assigned consumers.
     """
 
-    def __init__(self, consumers={}):
+    def __init__(self, consumers=[]):
         """
         Supervisor class constructor.
             consumers (dict, optional): The mapping of consumer classes to number of desired consumers of the same.
@@ -16,14 +16,14 @@ class Supervisor(Process):
         Process.__init__(self, name="ConsumerSupervisor")
         self.assignedConsumers = consumers
 
-    def assignConsumer(self, consumer, instances):
+    def assignConsumer(self, consumer):
         """
         Method which allows assigning consumers to a supervisor.
         
         Args:
             consumer (StompConsumer): An instance of a StompConsumer class or child classes.
         """
-        self.assignedConsumers[consumer] = instances
+        self.assignedConsumers.append(consumer)
 
     def run(self):
         """        
@@ -31,6 +31,8 @@ class Supervisor(Process):
         as its children and monitors their work.
         """
         # Start all assgined consumers
-        for consumer in self.assignedConsumers.keys():
+        for consumer in self.assignedConsumers:
+
+            # Start consumer
             print('Starting consumer...')
             Process(target=consumer.run, name='CustomConsumer').start()
