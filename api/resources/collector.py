@@ -8,6 +8,12 @@ class CollectorIdResource:
     """
     Represents the data collector REST resource.
     """
+
+    # ActiveMQ Send Headers
+    headers = {
+        'persistent':'true'
+    }
+
     def on_post(self, req, resp, queue):
         """
         Handles /collector/$queue post requests.
@@ -20,19 +26,18 @@ class CollectorIdResource:
         # Create the message
         data = req.media.get('data')
 
+        # Check if data is not empty
         if not data:
             raise falcon.HTTPMissingParam('data')
 
         # Send the message
-        # TODO: Make the message persistent
-        self.activemq_conn.send(queue, 
-                                json.dumps({
-                                    'data': data
-                                }).encode())
+        self.activemq_conn.send(queue, json.dumps({'data': data}).encode(), self.headers)
 
         # Answer the request
         resp.media = {
             'created': json.dumps(data),
             'status': 'success'
         }
+
+        # Created a new entry on the queue
         resp.status = falcon.HTTP_201
