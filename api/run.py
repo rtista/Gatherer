@@ -17,8 +17,6 @@ import bjoern
 # ActiveMQ Stomp Connection Configuration #
 ###########################################
 stompconf = StompConfig('tcp://{}:{}'.format(AppConfig.ACTIVEMQ['host'], AppConfig.ACTIVEMQ['port']),
-                        login=AppConfig.ACTIVEMQ['user'],
-                        passcode=AppConfig.ACTIVEMQ['pass'],
                         version=AppConfig.ACTIVEMQ['stomp_version'])
 
 ############################
