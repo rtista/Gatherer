@@ -27,8 +27,7 @@ class CollectorIdResource:
         # TODO: Make the message persistent
         self.activemq_conn.send(queue, 
                                 json.dumps({
-                                    'data': data, 
-                                    'timestamp': int(time())
+                                    'data': data
                                 }).encode())
 
         # Answer the request
