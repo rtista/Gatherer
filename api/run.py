@@ -36,5 +36,6 @@ api.add_route('/collector/{queue}', CollectorIdResource())
 # Serve application
 if __name__ == '__main__':
 
+    print('Starting bjoern server on {}:{}'.format(AppConfig.SERVER['url'], AppConfig.SERVER['port']))
     bjoern.listen(api, AppConfig.SERVER['url'], AppConfig.SERVER['port'])
     bjoern.run()
