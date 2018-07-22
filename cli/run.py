@@ -1,6 +1,6 @@
 # Own Imports
-from model import Supervisor
-from consumer import CustomConsumer
+from domain import Supervisor
+from consumers import CustomConsumer
 
 # Third Party Imports
 from stompest.config import StompConfig
@@ -19,10 +19,10 @@ if __name__ == '__main__':
     supervisor = Supervisor()
 
     # Create Consumers
-    consumer1 = CustomConsumer('/queue/sigapabinho', stompconf, {StompSpec.ACK_HEADER: StompSpec.ACK_CLIENT_INDIVIDUAL, StompSpec.ID_HEADER: 'consumer1'})
-    consumer2 = CustomConsumer('/queue/sigapabinho', stompconf, {StompSpec.ACK_HEADER: StompSpec.ACK_CLIENT_INDIVIDUAL, StompSpec.ID_HEADER: 'consumer2'})
-    consumer3 = CustomConsumer('/queue/sigapabinho', stompconf, {StompSpec.ACK_HEADER: StompSpec.ACK_CLIENT_INDIVIDUAL, StompSpec.ID_HEADER: 'consumer3'})
-    consumer4 = CustomConsumer('/queue/sigapabinho', stompconf, {StompSpec.ACK_HEADER: StompSpec.ACK_CLIENT_INDIVIDUAL, StompSpec.ID_HEADER: 'consumer4'})
+    consumer1 = CustomConsumer('/queue/sigapabinho', stompconf, 'consumer1')
+    consumer2 = CustomConsumer('/queue/sigapabinho', stompconf, 'consumer2')
+    consumer3 = CustomConsumer('/queue/sigapabinho', stompconf, 'consumer3')
+    consumer4 = CustomConsumer('/queue/sigapabinho', stompconf, 'consumer4')
 
     # Assign Consumers
     supervisor.assignConsumer(consumer1)
@@ -32,7 +32,3 @@ if __name__ == '__main__':
 
     # Start the supervisor process
     supervisor.start()
-
-    while True:
-        print('boas')
-        time.sleep(5)

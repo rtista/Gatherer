@@ -2,8 +2,7 @@ from stompest.config import StompConfig
 from stompest.sync import Stomp
 from random import choice
 
-stompconf = StompConfig('tcp://127.0.0.1:61613',
-                        version='1.2')
+stompconf = StompConfig('tcp://127.0.0.1:61613', version='1.2')
 QUEUE = '/queue/sigapabinho'
 
 if __name__ == '__main__':

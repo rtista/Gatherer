@@ -14,23 +14,23 @@ class StompConsumer(object):
         Process (multiprocessing.Process): An operation system process.
     """
 
-    # Subscription headers
-    HEADERS = {
-            # Client-individual mode is necessary for concurrent processing
-            StompSpec.ACK_HEADER: StompSpec.ACK_CLIENT_INDIVIDUAL,
-    }
-
-    def __init__(self, queue=None, stomp_config=None, headers=HEADERS):
+    def __init__(self, queue=None, stomp_config=None, consumer_id=None, headers=None):
         """        
         Create a new Consumer class instance.
         
         Args:
             queue (string): The queue, from which to consume, name.
             stomp_config (StompConfig): The Stomp connection configuration object.
+            consumer_id (string): The consumer id, an alfanumeric string.
             headers (Dict): The Stomp connection headers to be used.
         """
-        # super().__init__()
+        # Check for invalid values
+        if None in [queue, stomp_config, consumer_id]:
+            raise ValueError('Invalid consumer parameters.')
+
+        # Assign values
         self.queue = queue
+        self.consumer_id = consumer_id
         self.headers = headers
         self.conn = self.connect(stomp_config)
 
@@ -85,7 +85,7 @@ class SyncStompConsumer(StompConsumer):
     """
     Represents a Sync Stomp Consumer.
     """
-    def __init__(self, queue, stomp_config, headers):
+    def __init__(self, queue, stomp_config, consumer_id, headers):
         """        
         Create a new Sync Consumer class instance.
         
@@ -94,7 +94,7 @@ class SyncStompConsumer(StompConsumer):
             stomp_config (StompConfig): The Stomp sync connection configuration object.
             headers (Dict): The Stomp connection headers to be used.
         """
-        super().__init__(queue, stomp_config, headers)
+        super().__init__(queue, stomp_config, consumer_id, headers)
 
     def connect(self, stomp_config):
         """
