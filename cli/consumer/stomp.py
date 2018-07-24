@@ -62,22 +62,6 @@ class StompSyncConsumer(SyncConsumer):
         """
         return client.receiveFrame()
 
-    def consume(self, message):
-        """
-        Receives a message or group of messages, processes 
-        them and acknowledges them.
-        
-        Args:
-            message (Object): A MQ system message.
-        
-        Returns:
-            Boolean: Whether the message should or not be acknowledged.
-
-        Raises:
-            NotImplementedError: This is an abstract function.
-        """
-        raise NotImplementedError('This is an abstract function.')
-
     def ack(self, client, message):
         """
         Acknowledges the given message.
