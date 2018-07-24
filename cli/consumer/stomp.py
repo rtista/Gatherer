@@ -50,15 +50,6 @@ class StompSyncConsumer(SyncConsumer):
         """
         client.subscribe(self.queue, self.headers)
 
-    def can_consume(self):
-        """
-        Returns whether the consumer can or not receive a message.
-
-        Raises:
-            NotImplementedError: This is an abstract function.
-        """
-        raise NotImplementedError('This is an abstract function.')
-
     def receive(self, client):
         """
         Gets a message from the message system and returns it.

@@ -2,6 +2,7 @@ from consumer import StompSyncConsumer
 
 # Third-Party Imports
 from stompest.protocol.spec import StompSpec
+from signal import SIGINT, SIGTERM
 import os
 
 class CustomConsumer(StompSyncConsumer):
@@ -21,6 +22,23 @@ class CustomConsumer(StompSyncConsumer):
                         {StompSpec.ACK_HEADER: StompSpec.ACK_CLIENT_INDIVIDUAL,
                         StompSpec.ID_HEADER: consumer_id}
                         )
+        self.stop = False
+        self.addSighandler(SIGINT, self.sighandler)
+        self.addSighandler(SIGTERM, self.sighandler)
+
+    def sighandler(self):
+        """
+        Sets stop to True so the consumer stops
+        consuming and terminates itself.
+        """
+        self.stop = True
+
+    def can_consume(self):
+        """
+        Returns whether the consumer should keep 
+        consuming messages or stop.
+        """
+        return self.stop == False
 
     def consume(self, message):
         """

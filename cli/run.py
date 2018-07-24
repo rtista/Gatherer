@@ -1,6 +1,6 @@
 # Own Imports
-from domain import Supervisor
-from consumers import CustomConsumer
+from consume import CustomConsumer
+from supervisor import Supervisor
 
 # Third Party Imports
 from stompest.config import StompConfig
@@ -25,10 +25,10 @@ if __name__ == '__main__':
     consumer4 = CustomConsumer('/queue/sigapabinho', stompconf, 'consumer4')
 
     # Assign Consumers
-    supervisor.assignConsumer(consumer1)
-    supervisor.assignConsumer(consumer2)
-    supervisor.assignConsumer(consumer3)
-    supervisor.assignConsumer(consumer4)
+    supervisor.assignProcess('consumer1', consumer1)
+    supervisor.assignProcess('consumer2', consumer2)
+    supervisor.assignProcess('consumer3', consumer3)
+    supervisor.assignProcess('consumer4', consumer4)
 
     # Start the supervisor process
     supervisor.start()

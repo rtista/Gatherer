@@ -1,6 +1,10 @@
 # Own Imports
 from .consumer import Consumer
 
+# Third-party Imports
+from signal import signal
+
+
 class SyncConsumer(Consumer):
     """
     Represents a Sync Consumer.
@@ -16,6 +20,10 @@ class SyncConsumer(Consumer):
         Contains the consumer main execution loop, will
         be executed on process start.
         """
+        # Register configured signal handlers
+        if len(self.sigmap.keys()) > 0: 
+            map(signal, self.sigmap.keys(), self.sigmap.values())
+
         # Connect to the message system
         client = self.connect(self.conn_conf)
 

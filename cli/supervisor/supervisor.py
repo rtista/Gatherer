@@ -1,79 +1,81 @@
 # Third-party Imports
 from multiprocessing import Process
 import time
-
+from copy import copy
 
 class Supervisor(Process):
     """
-    Supervisor object should launch as child processes/threads 
-    and supervise the work of all its assigned consumers.
+    Supervisor object should launch as child processes 
+    and supervise the work of all its assigned processes.
     """
 
-    def __init__(self, consumers={}):
+    def __init__(self):
         """
         Supervisor class constructor.
-            consumers (dict, optional): The mapping of consumer classes to number of desired consumers of the same.
         """
-        Process.__init__(self, name="ConsumerSupervisor")
-        self.assignedConsumers = consumers
+        Process.__init__(self, name="Supervisor")
+        self.assignedProcesses = {}
+        self.runningProcesses = {}
 
-    def startConsumer(self, consumer):
+    def startProcess(self, name):
         """
-        If possible, starts a new process for the given consumer.
+        If possible, starts a new process.
         
         Args:
-            consumer (StompConsumer): An instance of a StompConsumer class or child classes.
+            process (Process): An instance of a Process class or child classes.
         """
-        # Check if assigned consumers are not already running
-        if self.assignedConsumers[consumer] == None or not self.assignedConsumers[consumer].is_alive():
+        # Check if given process is not already running
+        if self.runningProcesses[name] == None or not self.runningProcesses[name].is_alive():
 
-            # Consumer was never started so start
-            print('Starting consumer...')
-            self.assignedConsumers[consumer] = Process(target=consumer.run)
-            self.assignedConsumers[consumer].start()
+            # Process was never started so start
+            print('Starting process...')
+            self.runningProcesses[name] = Process(target=self.assignedProcesses[name].run)
+            self.runningProcesses[name].start()
 
         else:
             print('Nothing to do...')
 
-    def stopConsumer(self, consumer):
+    def stopProcess(self, process):
         """
-        If possible, stops a running consumer.
+        If possible, stops a running process.
         
         Args:
-            consumer (StompConsumer): An instance of a StompConsumer class or child classes.
+            process (Process): An instance of a Process class or child classes.
         """
-        # Check if assigned consumers are not already running
-        if self.assignedConsumers[consumer].is_alive():
+        # Check if assigned processes are not already running
+        if process.is_alive():
 
-            # Stop consumer and release memory space associated
-            print('Stopping consumer...')
-            self.assignedConsumers[consumer].join()
-            self.assignedConsumers[consumer].close()
+            # Stop process and release memory space associated
+            print('Stopping process...')
+            process.join()
+            process.close()
 
         else:
             print('Nothing to do...')
 
-    def assignConsumer(self, consumer):
+    def assignProcess(self, name, process):
         """
-        Method which allows assigning consumers to a supervisor.
+        Method which allows assigning process to the supervisor.
         
         Args:
-            consumer (StompConsumer): An instance of a StompConsumer class or child classes.
+            name (String): An unique identifier for the process.
+            process (Process): An instance of a Process class or child classes.
         """
-        self.assignedConsumers[consumer] = None
+        self.assignedProcesses[name] = process
+        self.runningProcesses[name] = None
 
     def run(self):
-        """        
-        The supervisor process starts all the consumers 
+        """
+        The supervisor process starts all its assigned processes 
         as its children and monitors their work.
         """
         while True:
 
-            print('Starting Consumers:')
+            print('Starting Assigned Processes:')
 
-            # Start all assigned consumers
-            for consumer in self.assignedConsumers.keys():
-                self.startConsumer(consumer)
+            # Start all assigned processes
+            for name in self.assignedProcesses.keys():
+                self.startProcess(name)
 
-            # Check if consumers are running every 10 sec
+            # Check if processes are running every 10 sec
             time.sleep(10)

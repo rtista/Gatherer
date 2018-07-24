@@ -1,9 +1,4 @@
-# Third-party Imports
-from multiprocessing import Process
-from signal import signal, SIGINT, SIGTERM
-
-
-class Consumer(Process):
+class Consumer(object):
     """
     A Consumer is a process which consumes messages from a message queue system.
     
@@ -20,6 +15,17 @@ class Consumer(Process):
             raise ValueError('Connection configuration is None!')
 
         self.conn_conf = conn_conf
+        self.sigmap = {}
+
+    def addSighandler(self, sig, sighandler):
+        """
+        Allows adding handler functions for unix signals.
+
+        Args:
+            sig (int): The signal to be handled.
+            sighandler (function): The handler function.
+        """
+        self.sigmap[sig] = sighandler
 
     def connect(self, conn_conf):
         """
@@ -47,12 +53,12 @@ class Consumer(Process):
 
     def can_consume(self):
         """
-        Returns whether the consumer can or not receive a message.
+        Returns whether the consumer should consume messages or stop execution.
 
-        Raises:
-            NotImplementedError: This is an abstract function.
+        Returns:
+            Boolean : Whether the consumer should consume messages or stop (default is True)
         """
-        raise NotImplementedError('This is an abstract function.')
+        return True
 
     def receive(self, client):
         """
