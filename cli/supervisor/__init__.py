@@ -1,1 +1,1 @@
-from .supervisor import Supervisor
+from .supervisor import ConsumerSupervisor
