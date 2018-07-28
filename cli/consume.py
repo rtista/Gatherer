@@ -9,7 +9,7 @@ class CustomConsumer(StompSyncConsumer):
     """
     My consumer is the best consumer.
     """
-    def __init__(self, queue, stomp_config, consumer_id):
+    def __init__(self, queue, stomp_config):
         """        
         Create a new Sync Consumer class instance.
         
@@ -20,16 +20,20 @@ class CustomConsumer(StompSyncConsumer):
         """
         super().__init__(queue, stomp_config, 
                         {StompSpec.ACK_HEADER: StompSpec.ACK_CLIENT_INDIVIDUAL,
-                        StompSpec.ID_HEADER: consumer_id}
+                        StompSpec.ID_HEADER: id(self) }
                         )
         self.stop = False
         self.addSighandler(SIGINT, self.sighandler)
         self.addSighandler(SIGTERM, self.sighandler)
 
-    def sighandler(self):
+    def sighandler(self, signum, frame):
         """
         Sets stop to True so the consumer stops
         consuming and terminates itself.
+        
+        Args:
+            signum (int): The signal received.
+            frame (frame): The process which killed this one.
         """
         self.stop = True
 
