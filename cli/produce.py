@@ -7,7 +7,12 @@ QUEUE = '/queue/sigapabinho'
 
 if __name__ == '__main__':
     client = Stomp(stompconf)
-    client.connect()
+
+    try:
+        client.connect()
+    except Exception:
+        print('Could not connect to ActiveMQ instance.')
+        exit(1)
 
     while True:
         client.send(QUEUE, 'test message {}'.format(choice(range(0, 10))).encode())
