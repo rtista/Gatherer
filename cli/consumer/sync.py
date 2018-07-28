@@ -1,11 +1,11 @@
 # Own Imports
-from .consumer import Consumer
+from .consumer import QueueConsumer
 
 # Third-party Imports
 from signal import signal
 
 
-class SyncConsumer(Consumer):
+class SyncConsumer(QueueConsumer):
     """
     Represents a Sync Consumer.
     """

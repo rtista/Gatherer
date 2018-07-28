@@ -1,16 +1,11 @@
-class Consumer(object):
+class QueueConsumer(object):
     """
     A Consumer is a process which consumes messages from a message queue system.
-    
-    Args:
-        Process (multiprocessing.Process): An operation system process.
     """
     def __init__(self, conn_conf):
         """        
         Create a new Consumer class instance.
         """
-        super().__init__()
-
         if conn_conf is None:
             raise ValueError('Connection configuration is None!')
 

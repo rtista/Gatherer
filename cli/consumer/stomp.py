@@ -32,7 +32,7 @@ class StompSyncConsumer(SyncConsumer):
             conn_conf (StompConfig): The MQ system stomp connection client configuration.
         
         Raises:
-            NotImplementedError: This is an abstract function.
+            StompConnectTimeout: Could not connect to STOMP socket.
         """
         client = Stomp(conn_conf)
         client.connect()
