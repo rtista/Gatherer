@@ -87,10 +87,8 @@ class ConsumerSupervisor(Process):
 
         # If process did not terminate, kill it
         if process.exitcode != -15:
+            print('Exitcode: {} PID: {}'.format(process.exitcode, process.pid))
             kill(process.pid, SIGKILL)
-
-        # Clear process addressed memory
-        process.close()
 
         return True
 
@@ -108,11 +106,6 @@ class ConsumerSupervisor(Process):
         Stops all consumers and supervisor process.
         """
         print('Stopping supervisor...')
-
-        # Stop all running consumers
-        for name in self.processmap.keys():
-            for proc in self.processmap[name]:
-                self.stopConsumer(name)
 
         # Stop the supervisor
         self.stop = True
@@ -139,6 +132,8 @@ class ConsumerSupervisor(Process):
 
         # TODO Create PID file
 
+        # TODO Have UNIX_AF listener
+
         # Main Loop
         while self.canSupervise():
 
@@ -147,16 +142,19 @@ class ConsumerSupervisor(Process):
             # Start all assigned processes
             for name in self.consumermap.keys():
 
-                print('Starting {} consumer'.format(name))
-
                 # Start at least 1 process for each assigned consumer
                 if len(self.processmap[name]) < 1:
                     self.startConsumer(name)
 
-            # TODO Have UNIX_AF listener
 
             # Check if processes are running every 10 sec
             time.sleep(10)
 
+        print('Supervisor is stopping....')
+
+        # Stop all running consumers
+        for name in self.processmap.keys():
+            for proc in self.processmap[name]:
+                self.stopConsumer(name)
+
         # Close everything / remove PID file
-        self.stopSupervisor()
