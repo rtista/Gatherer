@@ -1,6 +1,7 @@
 # Own Imports
 from consume import CustomConsumer
 from supervisor import ConsumerSupervisor
+from config import AppConfig
 
 # Third Party Imports
 from stompest.config import StompConfig
@@ -9,11 +10,10 @@ from stompest.sync import Stomp
 import os
 import time
 
-#test
-from signal import signal, SIGTERM, SIGINT
 
 # Stomp Connection Configuration
-stompconf = StompConfig('tcp://127.0.0.1:61613', version='1.2')
+stompconf = StompConfig('tcp://{}:{}'.format(AppConfig.ACTIVEMQ['host'], AppConfig.ACTIVEMQ['port']),
+                         version=AppConfig.ACTIVEMQ['stomp_version'])
 
 # Main Loop
 if __name__ == '__main__':
