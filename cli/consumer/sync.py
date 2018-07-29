@@ -21,8 +21,8 @@ class SyncConsumer(QueueConsumer):
         be executed on process start.
         """
         # Register configured signal handlers
-        if len(self.sigmap.keys()) > 0: 
-            map(signal, self.sigmap.keys(), self.sigmap.values())
+        for key in self.sigmap:
+            signal(key, self.sigmap[key])
 
         # Connect to the message system
         client = self.connect(self.conn_conf)
