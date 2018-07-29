@@ -85,11 +85,6 @@ class ConsumerSupervisor(Process):
         # Wait for process to die for 10 secondes
         process.join(timeout=10)
 
-        # If process did not terminate, kill it
-        if process.exitcode != -15:
-            print('Exitcode: {} PID: {}'.format(process.exitcode, process.pid))
-            kill(process.pid, SIGKILL)
-
         return True
 
     def canSupervise(self):
@@ -146,11 +141,10 @@ class ConsumerSupervisor(Process):
                 if len(self.processmap[name]) < 1:
                     self.startConsumer(name)
 
-
             # Check if processes are running every 10 sec
             time.sleep(10)
 
-        print('Supervisor is stopping....')
+        print('Supervisor: Stoping all children....')
 
         # Stop all running consumers
         for name in self.processmap.keys():
