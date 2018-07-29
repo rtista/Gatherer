@@ -1,7 +1,10 @@
+# Import Configuration
+from config import AppConfig
+
 # Third-party Imports
 from multiprocessing import Process
 from signal import signal, SIGTERM, SIGINT, SIGKILL
-from os import kill
+from os import kill, getpid, unlink
 import time
 
 
@@ -96,15 +99,6 @@ class ConsumerSupervisor(Process):
         """
         return self.stop == False
 
-    def stopSupervisor(self):
-        """
-        Stops all consumers and supervisor process.
-        """
-        print('Stopping supervisor...')
-
-        # Stop the supervisor
-        self.stop = True
-
     def sighandler(self, signum, frame):
         """
         Supervisor signal handler function.
@@ -113,8 +107,7 @@ class ConsumerSupervisor(Process):
             signum (int): The signal received.
             frame (frame): The process which killed this one.
         """
-        print('Received signal {} and frame: {}'.format(signum, frame))
-        self.stopSupervisor()
+        self.stop = True
 
     def run(self):
         """
@@ -125,7 +118,9 @@ class ConsumerSupervisor(Process):
         signal(SIGTERM, self.sighandler)
         signal(SIGINT, self.sighandler)
 
-        # TODO Create PID file
+        # Create PID file
+        with open(AppConfig.PID_LOCATION, 'w') as pidfile:
+            pidfile.write(str(getpid()))
 
         # TODO Have UNIX_AF listener
 
@@ -152,3 +147,4 @@ class ConsumerSupervisor(Process):
                 self.stopConsumer(name)
 
         # Close everything / remove PID file
+        unlink(AppConfig.PID_LOCATION)
