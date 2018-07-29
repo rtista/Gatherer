@@ -57,10 +57,13 @@ class StompSyncConsumer(SyncConsumer):
         Args:
             client (Object): The MQ system connection client.
 
-        Raises:
-            NotImplementedError: This is an abstract function.
+        Returns:
+            object: A message to be consumed or 'None' if there are no messages to read.
         """
-        return client.receiveFrame()
+        if client.canRead(2):
+            return client.receiveFrame()
+
+        return None
 
     def ack(self, client, message):
         """

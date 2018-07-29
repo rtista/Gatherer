@@ -36,14 +36,17 @@ class SyncConsumer(QueueConsumer):
             # Receive a message
             message = self.receive(client)
 
-            # Consume the message
-            if self.consume(message):
+            # If there are messages to read
+            if message is not None:
 
-                # Acknowledge the message
-                self.ack(client, message)
-            else:
-                # Requeue the message
-                self.nack(client, message)
+                # Consume the message
+                if self.consume(message):
+
+                    # Acknowledge the message
+                    self.ack(client, message)
+                else:
+                    # Requeue the message
+                    self.nack(client, message)
 
         # Disconnect from the MQ instance
         self.disconnect(client)
