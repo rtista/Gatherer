@@ -9,11 +9,11 @@ class SyncConsumer(QueueConsumer):
     """
     Represents a Sync Consumer.
     """
-    def __init__(self, conn_conf):
+    def __init__(self):
         """        
         Create a new Sync Consumer class instance.
         """
-        super().__init__(conn_conf)
+        super().__init__()
 
     def run(self):
         """
@@ -25,7 +25,7 @@ class SyncConsumer(QueueConsumer):
             signal(key, self.sigmap[key])
 
         # Connect to the message system
-        client = self.connect(self.conn_conf)
+        client = self.connect()
 
         # Subscribe to the queue
         self.subscribe(client)

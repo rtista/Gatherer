@@ -3,38 +3,40 @@ from .sync import SyncConsumer
 
 # Third-party Imports
 from stompest.sync import Stomp
+from stompest.protocol.spec import StompSpec
 
 class StompSyncConsumer(SyncConsumer):
     """
     Represents a Sync Stomp Consumer.
+
+    The class assigns automatically the ACK_CLIENT_INDIVIDUAL 
+    ACK_HEADER to allow concurrent consuming fro the same queue.
     """
-    def __init__(self, queue, stomp_config, headers):
+    stomp_config = None
+    stomp_headers = { StompSpec.ACK_HEADER: StompSpec.ACK_CLIENT_INDIVIDUAL }
+
+    def __init__(self):
         """        
         Create a new Sync Stomp Consumer class instance.
-        
-        Args:
-            queue (string): The queue, from which to consume, name.
-            stomp_config (StompConfig): The stomp connection configuration object.
         """
-        super().__init__(stomp_config)
+        super().__init__()
 
-        if queue is None:
-            raise ValueError('Queue object is empty.')
+        # Check if stomp configuration is valid
+        if self.stomp_config is None:
+            raise ValueError('Stomp Configuration object is empty.')
 
-        self.queue = queue
-        self.headers = headers
+        # Assign mandatory ID_HEADER if version above 1.1
+        if float(self.stomp_config.version) > 1.1:
+            self.stomp_headers[StompSpec.ID_HEADER] = id(self)
 
-    def connect(self, conn_conf):
+    def connect(self):
         """
         Connects to the MQ system using the conn_conf parameter.
-        
-        Args:
-            conn_conf (StompConfig): The MQ system stomp connection client configuration.
         
         Raises:
             StompConnectTimeout: Could not connect to STOMP socket.
         """
-        client = Stomp(conn_conf)
+        client = Stomp(self.stomp_config)
         client.connect()
         return client
 
@@ -48,7 +50,7 @@ class StompSyncConsumer(SyncConsumer):
         Raises:
             NotImplementedError: This is an abstract function.
         """
-        client.subscribe(self.queue, self.headers)
+        client.subscribe(self.queue, self.stomp_headers)
 
     def receive(self, client):
         """
