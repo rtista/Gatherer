@@ -1,19 +1,14 @@
 # Own Imports
-from consume import CustomConsumer
 from supervisor import ConsumerSupervisor
+from consume import CustomConsumer
 from config import AppConfig
 
-# Third Party Imports
-from stompest.config import StompConfig
-from stompest.protocol import StompSpec
-from stompest.sync import Stomp
-import os
-import time
 
+# Assigned Consumers Map (Class : count)
+ASSIGNED_CONSUMERS = {
+    CustomConsumer : 2,
+}
 
-# Stomp Connection Configuration
-stompconf = StompConfig('tcp://{}:{}'.format(AppConfig.ACTIVEMQ['host'], AppConfig.ACTIVEMQ['port']),
-                         version=AppConfig.ACTIVEMQ['stomp_version'])
 
 # Main Loop
 if __name__ == '__main__':
@@ -21,12 +16,9 @@ if __name__ == '__main__':
     # Create Supervisor
     supervisor = ConsumerSupervisor()
 
-    # Create Consumers
-    customConsumer = CustomConsumer('/queue/sigapabinho', stompconf)
-
     # Assign Consumers
-    supervisor.assignConsumer('consumer1', customConsumer)
-    supervisor.assignConsumer('consumer2', customConsumer)
+    for consumer in ASSIGNED_CONSUMERS.keys():
+        supervisor.assignConsumer(consumer)
 
     # Start the supervisor process
     supervisor.start()
