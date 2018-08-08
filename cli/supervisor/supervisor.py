@@ -18,69 +18,68 @@ class ConsumerSupervisor(Process):
         """
         Supervisor class constructor.
         """
-        Process.__init__(self, name="Supervisor")
+        Process.__init__(self, name='Supervisor')
         self.stop = False
         self.consumermap = {}
-        self.processmap = {}
 
-    def assignConsumer(self, name, consumer):
+    def assignConsumer(self, consumer):
         """
         Method which allows assigning a consumer to the supervisor.
         
         Args:
-            name (String): An unique identifier for the consumer.
-            consumer (QueueConsumer): An instance of a Consumer class or child classes.
-            count (int): Number of consumer processes to keep running.
+            consumer (QueueConsumer): A non-abstract child class of the QueueConsumer class.
         """
-        if name not in self.consumermap.keys():
-            self.consumermap[name] = consumer
-            self.processmap[name] = []
+        if consumer not in self.consumermap.keys():
+            self.consumermap[consumer] = []
 
-    def startConsumer(self, name):
+    def startConsumer(self, consumer):
         """
         Starts a process of an assigned consumer.
         
         Args:
-            name (string): The name of the assigned consumer to start.
+            consumer (class): The consumer class to start.
 
         Returns:
             boolean : Success of the operation.
         """
         # Return false if the consumer does not exist 
-        if name not in self.consumermap.keys():
+        if consumer not in self.consumermap.keys():
             return False
 
         # Start a new process for the consumer
-        print('Starting consumer {}...'.format(name))
-        process = Process(target=self.consumermap[name].run)
-        self.processmap[name].append(process)
+        print('Starting consumer {}...'.format(consumer))
+
+        process = consumer()
+
         process.start()
+
+        self.consumermap[consumer].append(process)
 
         return True
 
-    def stopConsumer(self, name):
+    def stopConsumer(self, consumer):
         """
         If possible, stops a running consumer.
         
         Args:
-            name (string): The name of the assigned consumer to stop.
+            consumer (class): The class of the assigned consumer to stop.
 
         Returns:
             boolean : Success of the operation.
         """
         # Return false if the consumer does not exist
-        if name not in self.consumermap.keys():
+        if consumer not in self.consumermap.keys():
             return False
 
         # Check if there are any processes running
-        if len(self.processmap[name]) == 0:
+        if len(self.consumermap[consumer]) == 0:
             return False
 
         # Remove the process from the list of running
-        process = self.processmap[name].pop(0)
+        process = self.consumermap[consumer].pop(0)
 
         # Stop process and release memory space associated
-        print('Stopping consumer {}...'.format(name))
+        print('Stopping consumer {}...'.format(consumer))
 
         # Stop the consumer cycle
         kill(process.pid, SIGTERM)
@@ -89,6 +88,26 @@ class ConsumerSupervisor(Process):
         process.join(timeout=10)
 
         return True
+
+    def monitorConsumers(self):
+        """    
+        Monitors all the assigned consumers and respective processes.
+        """
+        for consumer in self.consumermap.keys():
+
+            if len(self.consumermap[consumer]) < 1:
+                self.startConsumer(consumer)
+
+            # Remove dead processes from proclist
+            proclist = []
+
+            for proc in self.consumermap[consumer]:
+                # If the process is not running
+                if proc.is_alive():
+                    proclist.append(proc)
+
+            # Override old processlist by new
+            self.consumermap[consumer] = proclist
 
     def canSupervise(self):
         """
@@ -124,17 +143,15 @@ class ConsumerSupervisor(Process):
 
         # TODO Have UNIX_AF listener
 
+        # Start assigned consumers
+        print('Starting Assigned Processes:')
+        map(self.startConsumer, self.consumermap.keys())
+
         # Main Loop
         while self.canSupervise():
 
-            print('Starting Assigned Processes:')
-
-            # Start all assigned processes
-            for name in self.consumermap.keys():
-
-                # Start at least 1 process for each assigned consumer
-                if len(self.processmap[name]) < 1:
-                    self.startConsumer(name)
+            # Monitor assigned consumers
+            self.monitorConsumers()
 
             # Check if processes are running every 10 sec
             time.sleep(10)
@@ -142,9 +159,8 @@ class ConsumerSupervisor(Process):
         print('Supervisor: Stoping all children....')
 
         # Stop all running consumers
-        for name in self.processmap.keys():
-            for proc in self.processmap[name]:
-                self.stopConsumer(name)
+        for consumer in self.consumermap.keys():
+            self.stopConsumer(consumer)
 
         # Close everything / remove PID file
         unlink(AppConfig.PID_LOCATION)
