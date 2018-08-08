@@ -1,15 +1,21 @@
-class QueueConsumer(object):
+# Import multiprocessing.Process class
+from multiprocessing import Process
+
+
+class QueueConsumer(Process):
     """
-    A Consumer is a process which consumes messages from a message queue system.
+    A Consumer is a process which consumes messages 
+    from a queue that belongs in message queue system.
     """
-    def __init__(self, conn_conf):
+
+    # The queue from which to consume messages
+    queue = None
+
+    def __init__(self):
         """        
         Create a new Consumer class instance.
         """
-        if conn_conf is None:
-            raise ValueError('Connection configuration is None!')
-
-        self.conn_conf = conn_conf
+        Process.__init__(self, name='Consumer')
         self.sigmap = {}
 
     def addSighandler(self, sig, sighandler):
@@ -22,12 +28,9 @@ class QueueConsumer(object):
         """
         self.sigmap[sig] = sighandler
 
-    def connect(self, conn_conf):
+    def connect(self):
         """
         Connects to the MQ system using the conn_conf parameter.
-        
-        Args:
-            conn_conf (Object): The MQ system connection client configuration.
         
         Raises:
             NotImplementedError: This is an abstract function.
