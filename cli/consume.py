@@ -1,28 +1,28 @@
 from consumer import StompSyncConsumer
+from config import AppConfig
 
 # Third-Party Imports
+from stompest.config import StompConfig
 from stompest.protocol.spec import StompSpec
 from signal import SIGINT, SIGTERM
 import os
 
 class CustomConsumer(StompSyncConsumer):
     """
-    My consumer is the best consumer.
+    Consumes from the queue 'sigapabinho' by printing out the message.
     """
-    def __init__(self, queue, stomp_config):
+    queue = 'sigapabinho'
+    stomp_config = StompConfig('tcp://{}:{}'.format(AppConfig.ACTIVEMQ['host'], AppConfig.ACTIVEMQ['port']),
+                         version=AppConfig.ACTIVEMQ['stomp_version'])
+
+    def __init__(self):
         """        
         Create a new Sync Consumer class instance.
-        
-        Args:
-            queue (string): The queue, from which to consume, name.
-            stomp_config (StompConfig): The Stomp sync connection configuration object.
-            consumer_id (string): A unique ID for the consumer.
         """
-        super().__init__(queue, stomp_config, 
-                        {StompSpec.ACK_HEADER: StompSpec.ACK_CLIENT_INDIVIDUAL,
-                        StompSpec.ID_HEADER: id(self) }
-                        )
+        super().__init__()
         self.stop = False
+
+        # Define Signal handlers for SIGINT and SIGTERM
         self.addSighandler(SIGINT, self.sighandler)
         self.addSighandler(SIGTERM, self.sighandler)
 
@@ -50,8 +50,9 @@ class CustomConsumer(StompSyncConsumer):
         them and acknowledges them.
 
         Returns:
-            boolean 
+            boolean
         """
-        print('Got {}'.format(message.info()))
+        with open('consumer_messages.txt', 'a+') as consumer_file:
+            consumer_file.write('Got {}\n'.format(message.info()))
         
         return True
