@@ -14,15 +14,24 @@ class ConsumerSupervisor(Process):
     and supervise the work of all its assigned processes.
     """
 
+    # The Consumer Map holds all assigned consumers
+    # and their respective processes
+    # i.e. { class : [..., ...] }
+    consumermap = {}
+
+    # The Monitor Map holds how many consumers of 
+    # each assigned class should be monitored 
+    # i.e. { class : 1 }
+    monitormap = {}
+
     def __init__(self):
         """
         Supervisor class constructor.
         """
         Process.__init__(self, name='Supervisor')
         self.stop = False
-        self.consumermap = {}
 
-    def assignConsumer(self, consumer):
+    def assignConsumer(self, consumer, count):
         """
         Method which allows assigning a consumer to the supervisor.
         
@@ -31,6 +40,7 @@ class ConsumerSupervisor(Process):
         """
         if consumer not in self.consumermap.keys():
             self.consumermap[consumer] = []
+            self.monitormap[consumer] = count
 
     def startConsumer(self, consumer):
         """
@@ -85,7 +95,7 @@ class ConsumerSupervisor(Process):
         kill(process.pid, SIGTERM)
 
         # Wait for process to die for 10 secondes
-        process.join(timeout=10)
+        # process.join(timeout=7)
 
         return True
 
@@ -95,14 +105,15 @@ class ConsumerSupervisor(Process):
         """
         for consumer in self.consumermap.keys():
 
-            if len(self.consumermap[consumer]) < 1:
+            if len(self.consumermap[consumer]) < self.monitormap[consumer]:
                 self.startConsumer(consumer)
 
             # Remove dead processes from proclist
             proclist = []
 
             for proc in self.consumermap[consumer]:
-                # If the process is not running
+
+                # If the process is running
                 if proc.is_alive():
                     proclist.append(proc)
 
@@ -160,7 +171,10 @@ class ConsumerSupervisor(Process):
 
         # Stop all running consumers
         for consumer in self.consumermap.keys():
-            self.stopConsumer(consumer)
+
+            while len(self.consumermap[consumer]) > 0:
+                self.stopConsumer(consumer)
+                time.sleep(0.2)
 
         # Close everything / remove PID file
         unlink(AppConfig.PID_LOCATION)
