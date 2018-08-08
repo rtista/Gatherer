@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     # Assign Consumers
     for consumer in ASSIGNED_CONSUMERS.keys():
-        supervisor.assignConsumer(consumer)
+        supervisor.assignConsumer(consumer, ASSIGNED_CONSUMERS[consumer])
 
     # Start the supervisor process
     supervisor.start()
