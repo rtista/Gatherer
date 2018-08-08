@@ -109,3 +109,5 @@ venv.bak/
 # Dont version configuration files
 api/config/config.py
 cli/config/config.py
+consumer_messages.txt
+gatherer-cli.pid
