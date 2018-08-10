@@ -10,6 +10,7 @@ if __name__ == '__main__':
 
     try:
         client.connect()
+        
     except Exception:
         print('Could not connect to ActiveMQ instance.')
         exit(1)

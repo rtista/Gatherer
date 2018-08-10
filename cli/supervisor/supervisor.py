@@ -4,7 +4,7 @@ from config import AppConfig
 # Third-party Imports
 from multiprocessing import Process
 from signal import signal, SIGTERM, SIGINT, SIGKILL
-from os import kill, getpid, unlink
+from os import fork, kill, getpid, unlink
 import time
 
 
@@ -144,6 +144,10 @@ class ConsumerSupervisor(Process):
         The supervisor process starts all its assigned processes 
         as its children and monitors their work.
         """
+        # Double-fork allows background running
+        if fork() != 0:
+            return
+
         # Declare signal handler
         signal(SIGTERM, self.sighandler)
         signal(SIGINT, self.sighandler)
@@ -153,6 +157,7 @@ class ConsumerSupervisor(Process):
             pidfile.write(str(getpid()))
 
         # TODO Have UNIX_AF listener
+        
 
         # Start assigned consumers
         print('Starting Assigned Processes:')
@@ -161,11 +166,15 @@ class ConsumerSupervisor(Process):
         # Main Loop
         while self.canSupervise():
 
-            # Monitor assigned consumers
-            self.monitorConsumers()
+            # Monitor assigned consumers every 10 sec
+            if time.strftime('%S') % 10 == 0:
+                self.monitorConsumers()
 
-            # Check if processes are running every 10 sec
-            time.sleep(10)
+            # Accept AF_UNIX socket connections
+
+
+            # Sleep 1 sec
+            time.sleep(1)
 
         print('Supervisor: Stoping all children....')
 
