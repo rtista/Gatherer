@@ -3,7 +3,6 @@ from config import AppConfig
 
 # Third-Party Imports
 from stompest.config import StompConfig
-from stompest.protocol.spec import StompSpec
 from signal import SIGINT, SIGTERM
 import os
 
