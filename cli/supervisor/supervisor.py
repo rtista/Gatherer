@@ -1,8 +1,11 @@
 # Import Configuration
 from config import AppConfig
+from .listener import UnixListener
 
 # Third-party Imports
 from multiprocessing import Process
+from multiprocessing.connection import Listener
+from threading import Thread
 from signal import signal, SIGTERM, SIGINT, SIGKILL
 from os import fork, kill, getpid, unlink
 import time
@@ -20,7 +23,7 @@ class ConsumerSupervisor(Process):
     consumermap = {}
 
     # The Monitor Map holds how many consumers of 
-    # each assigned class should be monitored 
+    # each assigned class should be monitored
     # i.e. { class : 1 }
     monitormap = {}
 
@@ -89,13 +92,13 @@ class ConsumerSupervisor(Process):
         process = self.consumermap[consumer].pop(0)
 
         # Stop process and release memory space associated
-        print('Stopping consumer {}...'.format(consumer))
+        print('Stopping consumer {}...'.format(consumer.__name__))
 
         # Stop the consumer cycle
         kill(process.pid, SIGTERM)
 
         # Wait for process to die for 10 secondes
-        # process.join(timeout=7)
+        process.join(timeout=7)
 
         return True
 
@@ -156,8 +159,11 @@ class ConsumerSupervisor(Process):
         with open(AppConfig.PID_LOCATION, 'w') as pidfile:
             pidfile.write(str(getpid()))
 
-        # TODO Have UNIX_AF listener
-        
+        # TODO Have UNIX_AF listener - Requires Thread...
+        unixsock = Listener(AppConfig.UNIX_SOCKET, 'AF_UNIX')
+
+        # Spawn listener thread
+        UnixListener(unixsock, self.monitormap).start()
 
         # Start assigned consumers
         print('Starting Assigned Processes:')
@@ -167,13 +173,9 @@ class ConsumerSupervisor(Process):
         while self.canSupervise():
 
             # Monitor assigned consumers every 10 sec
-            if time.strftime('%S') % 10 == 0:
-                self.monitorConsumers()
+            self.monitorConsumers()
 
-            # Accept AF_UNIX socket connections
-
-
-            # Sleep 1 sec
+            # Sleep 10 sec
             time.sleep(1)
 
         print('Supervisor: Stoping all children....')
@@ -184,6 +186,9 @@ class ConsumerSupervisor(Process):
             while len(self.consumermap[consumer]) > 0:
                 self.stopConsumer(consumer)
                 time.sleep(0.2)
+
+        # Close unixsocket
+        unixsock.close()
 
         # Close everything / remove PID file
         unlink(AppConfig.PID_LOCATION)
