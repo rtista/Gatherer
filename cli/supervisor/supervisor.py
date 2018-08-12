@@ -9,6 +9,7 @@ from threading import Thread
 from signal import signal, SIGTERM, SIGINT, SIGKILL
 from os import fork, kill, getpid, unlink
 import time
+import inspect
 
 
 class ConsumerSupervisor(Process):
@@ -17,111 +18,129 @@ class ConsumerSupervisor(Process):
     and supervise the work of all its assigned processes.
     """
 
-    # The Consumer Map holds all assigned consumers
-    # and their respective processes
-    # i.e. { class : [..., ...] }
-    consumermap = {}
+    # Assigned Processes Map
+    # Holds all information relative to assigned processes, 
+    # running child instances and monitored instances.
+    # i.e. {
+    #   class.__name__ : {
+    #       'class': Consumer,
+    #       'monitored': 2,
+    #       'running': []
+    #   },
+    #   (...)
+    # }
+    assigned = {}
 
-    # The Monitor Map holds how many consumers of 
-    # each assigned class should be monitored
-    # i.e. { class : 1 }
-    monitormap = {}
-
-    def __init__(self):
+    def __init__(self, assigned_processes={}):
         """
         Supervisor class constructor.
         """
         Process.__init__(self, name='Supervisor')
         self.stop = False
 
-    def assignConsumer(self, consumer, count):
-        """
-        Method which allows assigning a consumer to the supervisor.
-        
-        Args:
-            consumer (QueueConsumer): A non-abstract child class of the QueueConsumer class.
-        """
-        if consumer not in self.consumermap.keys():
-            self.consumermap[consumer] = []
-            self.monitormap[consumer] = count
+        # Assign given processes
+        for process in assigned_processes.keys():
+            self.assignProcess(process, assigned_processes[process])
 
-    def startConsumer(self, consumer):
+    def assignProcess(self, process, count):
         """
-        Starts a process of an assigned consumer.
+        Method which allows assigning a process to the supervisor.
         
         Args:
-            consumer (class): The consumer class to start.
+            process (multiprocessing.Process): A non-abstract child class of the Process class.
+            count (int): The number of instances to keep running concurrently.
+        """
+        if inspect.isclass(process) and count > 0 and process.__name__ not in self.assigned.keys():
+
+            self.assigned[process.__name__] = {
+                'class': process,
+                'monitored': count,
+                'running': []
+            }
+
+    def spawnInstance(self, process):
+        """
+        Spawns an instance of an assigned process.
+        
+        Args:
+            process (str): The name of the process class to start.
 
         Returns:
             boolean : Success of the operation.
         """
         # Return false if the consumer does not exist 
-        if consumer not in self.consumermap.keys():
+        if process not in self.assigned.keys():
             return False
 
         # Start a new process for the consumer
-        print('Starting consumer {}...'.format(consumer))
+        print('Starting instance of {}...'.format(process))
 
-        process = consumer()
+        instance = self.assigned[process]['class']()
 
-        process.start()
+        instance.start()
 
-        self.consumermap[consumer].append(process)
+        self.assigned[process]['running'].append(instance)
 
         return True
 
-    def stopConsumer(self, consumer):
+    def stopInstance(self, process):
         """
-        If possible, stops a running consumer.
+        If possible, stops a running instance of an assigned process.
         
         Args:
-            consumer (class): The class of the assigned consumer to stop.
+            process (str): The name of the process class to start.
 
         Returns:
             boolean : Success of the operation.
         """
-        # Return false if the consumer does not exist
-        if consumer not in self.consumermap.keys():
+        # Return false if the consumer does not exist 
+        if process not in self.assigned.keys():
             return False
 
         # Check if there are any processes running
-        if len(self.consumermap[consumer]) == 0:
+        if len(self.assigned[process]['running']) == 0:
             return False
 
         # Remove the process from the list of running
-        process = self.consumermap[consumer].pop(0)
+        instance = self.assigned[process]['running'].pop(0)
 
         # Stop process and release memory space associated
-        print('Stopping consumer {}...'.format(consumer.__name__))
+        print('Stopping instance of {}...'.format(process))
 
         # Stop the consumer cycle
-        kill(process.pid, SIGTERM)
+        kill(instance.pid, SIGTERM)
 
         # Wait for process to die for 10 secondes
-        process.join(timeout=7)
+        instance.join(timeout=7)
 
         return True
 
-    def monitorConsumers(self):
+    def monitInstances(self):
         """    
-        Monitors all the assigned consumers and respective processes.
+        Monitors all the assigned process and its respective instances.
         """
-        for consumer in self.consumermap.keys():
+        for process in self.assigned.keys():
 
-            if len(self.consumermap[consumer]) < self.monitormap[consumer]:
-                self.startConsumer(consumer)
+            # Remove dead processes from running
+            running = []
 
-            # Remove dead processes from proclist
-            proclist = []
-
-            for proc in self.consumermap[consumer]:
+            for instance in self.assigned[process]['running']:
 
                 # If the process is running
-                if proc.is_alive():
-                    proclist.append(proc)
+                if instance.is_alive():
+                    running.append(instance)
 
             # Override old processlist by new
-            self.consumermap[consumer] = proclist
+            self.assigned[process]['running'] = running
+
+            dif = self.assigned[process]['monitored'] - len(self.assigned[process]['running'])
+
+            if dif > 0:
+                map(self.spawnInstance(process), range(abs(dif)))
+
+            elif dif < 0:
+                map(self.stopInstance(process), range(abs(dif)))
+
 
     def canSupervise(self):
         """
@@ -148,8 +167,8 @@ class ConsumerSupervisor(Process):
         as its children and monitors their work.
         """
         # Double-fork allows background running
-        if fork() != 0:
-            return
+        # if fork() != 0:
+        #     return
 
         # Declare signal handler
         signal(SIGTERM, self.sighandler)
@@ -163,17 +182,13 @@ class ConsumerSupervisor(Process):
         unixsock = Listener(AppConfig.UNIX_SOCKET, 'AF_UNIX')
 
         # Spawn listener thread
-        UnixListener(unixsock, self.monitormap).start()
-
-        # Start assigned consumers
-        print('Starting Assigned Processes:')
-        map(self.startConsumer, self.consumermap.keys())
+        UnixListener(unixsock, self.assigned).start()
 
         # Main Loop
         while self.canSupervise():
 
             # Monitor assigned consumers every 10 sec
-            self.monitorConsumers()
+            self.monitInstances()
 
             # Sleep 10 sec
             time.sleep(1)
@@ -181,10 +196,9 @@ class ConsumerSupervisor(Process):
         print('Supervisor: Stoping all children....')
 
         # Stop all running consumers
-        for consumer in self.consumermap.keys():
-
-            while len(self.consumermap[consumer]) > 0:
-                self.stopConsumer(consumer)
+        for process in self.assigned.keys():
+            while len(self.assigned[process]['running']) > 0:
+                self.stopInstance(process)
                 time.sleep(0.2)
 
         # Close unixsocket
