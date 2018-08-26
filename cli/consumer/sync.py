@@ -9,11 +9,19 @@ class SyncConsumer(QueueConsumer):
     """
     Represents a Sync Consumer.
     """
-    def __init__(self):
-        """        
+
+    # A message queueing system adapter.
+    adapter = None
+
+    def __init__(self, adapter):
+        """
         Create a new Sync Consumer class instance.
+        
+        Args:
+            adapter (MQAdapter): A message queueing system adapter object.
         """
         super().__init__()
+        self.adapter = adapter
 
     def run(self):
         """
@@ -25,16 +33,16 @@ class SyncConsumer(QueueConsumer):
             signal(key, self.sigmap[key])
 
         # Connect to the message system
-        client = self.connect()
+        self.adapter.connect()
 
         # Subscribe to the queue
-        self.subscribe(client)
+        self.adapter.subscribe(self.queue)
 
         # Sync Consumer Loop
         while self.can_consume():
 
             # Receive a message
-            message = self.receive(client)
+            message = self.adapter.retrieve()
 
             # If there are messages to read
             if message is not None:
@@ -43,10 +51,10 @@ class SyncConsumer(QueueConsumer):
                 if self.consume(message):
 
                     # Acknowledge the message
-                    self.ack(client, message)
+                    self.adapter.ack(message)
                 else:
                     # Requeue the message
-                    self.nack(client, message)
+                    self.adapter.nack(message)
 
         # Disconnect from the MQ instance
-        self.disconnect(client)
+        self.adapter.disconnect()
