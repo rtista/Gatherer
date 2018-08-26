@@ -1,21 +1,30 @@
-from stompest.config import StompConfig
-from stompest.sync import Stomp
+# Own Imports
+from adapters import StompMQAdapter
+from config import AppConfig
+
+# Third party imports
 from random import choice
 
-stompconf = StompConfig('tcp://127.0.0.1:61613', version='1.2')
-QUEUE = '/queue/sigapabinho'
+# The queue from which it will consume
+queue = 'sigapabinho'
 
 if __name__ == '__main__':
-    client = Stomp(stompconf)
+
+    # Message Queue System Adapter
+    adapter = StompMQAdapter(
+        AppConfig.ACTIVEMQ['host'],
+        AppConfig.ACTIVEMQ['port'],
+        AppConfig.ACTIVEMQ['stomp_version']
+    )
 
     try:
-        client.connect()
+        adapter.connect()
         
     except Exception:
         print('Could not connect to ActiveMQ instance.')
         exit(1)
 
     while True:
-        client.send(QUEUE, 'test message {}'.format(choice(range(0, 10))).encode())
+        adapter.queue(queue, 'test message {}'.format(choice(range(0, 10))))
     
-    client.disconnect()
+    adapter.disconnect()
