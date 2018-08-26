@@ -167,8 +167,8 @@ class ConsumerSupervisor(Process):
         as its children and monitors their work.
         """
         # Double-fork allows background running
-        # if fork() != 0:
-        #     return
+        if fork() != 0:
+            return
 
         # Declare signal handler
         signal(SIGTERM, self.sighandler)
