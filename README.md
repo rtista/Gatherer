@@ -8,4 +8,4 @@ HTTP API allows sending raw JSON formatted data into an ActiveMQ queue for later
 
 ## Pip Dependencies
 
-`pip install bjoern falcon`
+`pip install -r requirements.txt`
