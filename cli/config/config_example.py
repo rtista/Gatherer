@@ -15,6 +15,9 @@ class Config:
     # PID File Location
     PID_LOCATION = './gatherer-cli.pid'
 
+    # Unix_AF Socket
+    UNIX_SOCKET = './gatherer-cli.sock'
+
 class DevelopmentConfig(Config):
     '''
     Configuration for the development environment.
