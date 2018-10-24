@@ -1,10 +1,10 @@
-# Import multiprocessing.Process class
-from multiprocessing import Process
+# Imports
+from .unix import UnixProcess
 
 
-class QueueConsumer(Process):
+class QueueConsumer(UnixProcess):
     """
-    A Consumer is a process which consumes messages 
+    A Consumer is a Unix Process which consumes messages 
     from a queue that belongs in message queue system.
     """
 
@@ -15,18 +15,7 @@ class QueueConsumer(Process):
         """        
         Create a new Consumer class instance.
         """
-        Process.__init__(self, name='Consumer')
-        self.sigmap = {}
-
-    def addSighandler(self, sig, sighandler):
-        """
-        Allows adding handler functions for unix signals.
-
-        Args:
-            sig (int): The signal to be handled.
-            sighandler (function): The handler function.
-        """
-        self.sigmap[sig] = sighandler
+        super().__init__(name='Consumer')
 
     def can_consume(self):
         """
