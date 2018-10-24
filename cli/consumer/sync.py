@@ -1,9 +1,6 @@
 # Own Imports
 from .consumer import QueueConsumer
 
-# Third-party Imports
-from signal import signal
-
 
 class SyncConsumer(QueueConsumer):
     """
@@ -28,9 +25,8 @@ class SyncConsumer(QueueConsumer):
         Contains the consumer main execution loop, will
         be executed on process start.
         """
-        # Register configured signal handlers
-        for key in self.sigmap:
-            signal(key, self.sigmap[key])
+        # Register mapped signal handlerss
+        self.mapSignalHandlers()
 
         # Connect to the message system
         self.adapter.connect()
