@@ -1,15 +1,16 @@
 #!.venv/bin/python3
 
+# Batteries
+from sys import argv
+from os import kill
+from signal import SIGTERM
+from argparse import ArgumentParser
+from multiprocessing.connection import Client
+    
 # Own Imports
 from supervisor import ConsumerSupervisor
 from consume import CustomConsumer
 from config import AppConfig
-
-# Third-party Imports
-from sys import argv
-from os import kill
-from signal import SIGTERM
-from multiprocessing.connection import Client
 
 
 # Assigned Consumers Map (Class : count)
@@ -56,20 +57,6 @@ def restart():
     start()
 
 
-def stopConsumer(consumer):
-    '''
-    Stops all the consumers of the given class.
-    
-    Args:
-        args (list): Arguments to be passed onto the function.
-    '''
-    client = Client(AppConfig.UNIX_SOCKET, 'UNIX_AF')
-
-    client.send(['stop', consumer])
-
-    client.close()
-
-
 def spawn(consumer, dif):
     '''
     Spawns or reduces the number of monitored consumers.
@@ -89,28 +76,26 @@ OPERATIONS = {
     'start': start,
     # 'reload': reload,
     'restart': restart,
-    'consumer': {
-        'stop': stopConsumer,
-        'spawn': spawn,
-    }
+    'spawn': spawn
 }
 
 
 # Main
 if __name__ == '__main__':
 
-    print('argv: {}'.format(argv))
+    # Create parser
+    parser = ArgumentParser('gatherer-ctl')
+    parser.add_argument('operation', type=str, choices=OPERATIONS.keys(), help='The operation to perform.')
+    parser.add_argument('consumer', type=str, const=None, nargs='?', help='The name of the consumer to spawn/despawn.')
+    parser.add_argument('dif', type=int, const=0, nargs='?', help='The number of consumers to spawn/despawn.')
 
-    arglen = len(argv)
+    # Parser arguments
+    args = parser.parse_args()
     
-    if arglen == 2:
-        OPERATIONS[argv[1]]()
+    # Check if simple operation
+    if args.operation in ('stop', 'start', 'restart'):
+        OPERATIONS[args.operation]()
         
-    elif arglen == 4:
-        OPERATIONS[argv[1]][argv[2]](argv[3])
-    
-    elif arglen == 5:
-        OPERATIONS[argv[1]][argv[2]](argv[3], argv[4])
-    
+    # Check for parameterized operation
     else:
-        print('Invalid Command')
+        OPERATIONS[args.operation](args.consumer, args.dif)
