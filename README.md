@@ -3,6 +3,7 @@
 HTTP API allows sending raw JSON formatted data into an ActiveMQ queue for later custom consumption. Consumers should be developed for each queue as each should save different data in a different way.
 
 ## System Dependencies
+
 First you may need to install python dependencies on your system.
 
 The table below shows which technologies require the packages whose installation is required.
@@ -43,4 +44,20 @@ git clone git@github.com:rtista/Gatherer.git
 ```bash
 cd Gatherer/
 pip install -r requirements.txt
+```
+
+## Testing with dockers
+
+You can test the application using dockers to provide architecture required systems (i.e. MariaDB, ActiveMQ, etc):
+
+MariaDB docker:
+
+```bash
+docker run --name mariadb -p 3306:3306 -e MYSQL_ROOT_PASSWORD=password -d mariadb
+```
+
+Postgres docker:
+
+```bash
+docker run --name postgres -p 5432:5432 -d postgres
 ```
