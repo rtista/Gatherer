@@ -11,23 +11,25 @@ Package | Required By
 --------|------------
 libev-devel | Bjoern HTTP Server
 python2-devel | Bjoern HTTP Server
+libpq-devel | Postgres SQL Driver (psycopg2)
+mariadb-devel | MariaDB/MySQL Driver (mysqlclient)
 
 On RedHat Based Distributions - Dnf
 
 ```bash
-sudo dnf install libev-devel python2-devel
+sudo dnf install libev-devel python3-devel libpq-devel mariadb-devel
 ```
 
 On RedHat Based Distributions - Yum
 
 ```bash
-sudo yum install libev-devel python2-devel
+sudo yum install libev-devel python3-devel libpq-devel mariadb-devel
 ```
 
 On Debian Based Distributions - Apt
 
 ```bash
-sudo apt-get install libev-devel python2-devel
+sudo apt-get install libev-devel python3-devel libpq-dev mariadb-dev
 ```
 
 ## Cloning

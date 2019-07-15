@@ -1,8 +1,4 @@
-# Import Configuration
-from config import AppConfig
-from .listener import UnixListener
-
-# Third-party Imports
+# Batteries Imports
 from multiprocessing import Process
 from multiprocessing.connection import Listener
 from threading import Thread
@@ -11,15 +7,19 @@ from os import fork, kill, getpid, unlink
 import time
 import inspect
 
+# Import Configuration
+from config import AppConfig
+from .listener import UnixListener
+
 
 class ConsumerSupervisor(Process):
     """
-    Supervisor object should launch as child processes 
+    Supervisor object should launch as child processes
     and supervise the work of all its assigned processes.
     """
 
     # Assigned Processes Map
-    # Holds all information relative to assigned processes, 
+    # Holds all information relative to assigned processes,
     # running child instances and monitored instances.
     # i.e. {
     #   class.__name__ : {
@@ -45,7 +45,7 @@ class ConsumerSupervisor(Process):
     def assignProcess(self, process, count):
         """
         Method which allows assigning a process to the supervisor.
-        
+
         Args:
             process (multiprocessing.Process): A non-abstract child class of the Process class.
             count (int): The number of instances to keep running concurrently.
@@ -61,14 +61,14 @@ class ConsumerSupervisor(Process):
     def spawnInstance(self, process):
         """
         Spawns an instance of an assigned process.
-        
+
         Args:
             process (str): The name of the process class to start.
 
         Returns:
             boolean : Success of the operation.
         """
-        # Return false if the consumer does not exist 
+        # Return false if the consumer does not exist
         if process not in self.assigned.keys():
             return False
 
@@ -86,14 +86,14 @@ class ConsumerSupervisor(Process):
     def stopInstance(self, process):
         """
         If possible, stops a running instance of an assigned process.
-        
+
         Args:
             process (str): The name of the process class to start.
 
         Returns:
             boolean : Success of the operation.
         """
-        # Return false if the consumer does not exist 
+        # Return false if the consumer does not exist
         if process not in self.assigned.keys():
             return False
 
@@ -116,7 +116,7 @@ class ConsumerSupervisor(Process):
         return True
 
     def monitInstances(self):
-        """    
+        """
         Monitors all the assigned process and its respective instances.
         """
         for process in self.assigned.keys():
@@ -141,11 +141,10 @@ class ConsumerSupervisor(Process):
             elif dif < 0:
                 map(self.stopInstance(process), range(abs(dif)))
 
-
     def canSupervise(self):
         """
         Allows gracefully stopping the supervisor if needed.
-        
+
         Returns:
             boolean: Whether the supervisor should keep running.
         """
@@ -154,7 +153,7 @@ class ConsumerSupervisor(Process):
     def sighandler(self, signum, frame):
         """
         Supervisor signal handler function.
-        
+
         Args:
             signum (int): The signal received.
             frame (frame): The process which killed this one.
@@ -163,7 +162,7 @@ class ConsumerSupervisor(Process):
 
     def run(self):
         """
-        The supervisor process starts all its assigned processes 
+        The supervisor process starts all its assigned processes
         as its children and monitors their work.
         """
         # Double-fork allows background running
@@ -178,7 +177,7 @@ class ConsumerSupervisor(Process):
         with open(AppConfig.PID_LOCATION, 'w') as pidfile:
             pidfile.write(str(getpid()))
 
-        # TODO Have UNIX_AF listener - Requires Thread...
+        # Create UNIX_AF listening thread
         unixsock = Listener(AppConfig.UNIX_SOCKET, 'AF_UNIX')
 
         # Spawn listener thread
