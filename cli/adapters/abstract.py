@@ -82,6 +82,37 @@ class SQLDBAdapter(object):
     Args:
         object (class): The object class.
     """
+
+    # The database connection object
+    _connection = None
+
+    # The database cursor object
+    _cursor = None
+
+    def __init__(self, host, port, username, password):
+        """
+        Creates a SQLDBAdapter instance.
+        
+        Args:
+            host (str): The hostname or IP address for the DB instance.
+            port (int): The port to which to connect.
+            username (str): The username to be used in authentication.
+            password (str): The password to be used in authentication.
+        """
+        self._host = host
+        self._port = port
+        self._username = username
+        self._password = password
+
+    def isconnected(self):
+        """
+        Returns whether the connection to the database is alive.
+
+        Raises:
+            NotImplementedError: When the method is not implemented.
+        """
+        raise NotImplementedError('Method not implemented.')
+
     def connect(self):
         """
         Connects to the database instance.
@@ -110,6 +141,15 @@ class SQLDBAdapter(object):
         Args:
             query (str): The query to be executed.
             values (tuple): Tuple of tuples of values to be replaced in the query.
+
+        Raises:
+            NotImplementedError: When the method is not implemented.
+        """
+        raise NotImplementedError('Method not implemented.')
+
+    def commit(self):
+        """
+        Commits changes to the database, making them persistent.
 
         Raises:
             NotImplementedError: When the method is not implemented.
