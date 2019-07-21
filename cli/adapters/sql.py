@@ -1,5 +1,6 @@
 # Third-party imports
 import psycopg2
+import psycopg2.extras
 import MySQLdb
 
 # Local imports
@@ -9,14 +10,14 @@ from .abstract import SQLDBAdapter
 class PostgresAdapter(SQLDBAdapter):
     """
     Provides a simple API for a PostgreSQL database.
-    
+
     Args:
         SQLDBAdapter (class): An adapter for SQL based databases.
     """
-    def __init__(self, host, username, port=5432, password=None):
+    def __init__(self, host, username, password=None, port=5432):
         """
         Creates a PostgresAdapter instance.
-        
+
         Args:
             host (str): The hostname or IP address for the DB instance.
             port (int, optional): The port to which to connect. Defaults to 5432.
@@ -32,21 +33,26 @@ class PostgresAdapter(SQLDBAdapter):
         Raises:
             NotImplementedError: When the method is not implemented.
         """
-        # Check if cursor is instantiated
-        if not self._cursor:
-            return False
+        # Check if cursor is instantiated and
+        if self._cursor and self._connection.closed == 0:
+            return True
 
-        return True
+        return False
 
-    def connect(self):
+    def connect(self, dbname):
         """
-        Connects to the database instance.
+        Connects to the database instance in the given 'dbname'.
+
+        Args:
+            dbname (str): The name of the database to connect to.
 
         Raises:
             NotImplementedError: When the method is not implemented.
         """
-        self._connection = psycopg2.connect(host=self._host, port=self._port, 
-                                            user=self._username, password=self._password)
+        self._connection = psycopg2.connect(
+            host=self._host, port=self._port,
+            user=self._username, password=self._password,
+            dbname=dbname)
 
         # Create cursor upon connecting
         self._cursor = self._connection.cursor()
@@ -100,7 +106,7 @@ class PostgresAdapter(SQLDBAdapter):
 
         self._connection.commit()
 
-    def fecthone(self):
+    def fetchone(self):
         """
         Retrieves one row for the results of the most recently
         executed query.
@@ -112,9 +118,29 @@ class PostgresAdapter(SQLDBAdapter):
         if not self._cursor:
             raise Exception('Not connected to the database.')
 
-        return self._cursor.fecthone()
+        return self._cursor.fetchone()
 
-    def fecthall(self):
+    def fetchmany(self, size=None):
+        """
+        Retrieves size rows for the results of the most recently
+        executed query.
+
+        Args:
+            size (int, optional): Number of rows to fecth. Defaults to None.
+
+        Raises:
+            Exception: When the adapter is not connected to the database.
+        """
+        # Check if cursor is instantiated
+        if not self._cursor:
+            raise Exception('Not connected to the database.')
+
+        if size:
+            return self._cursor.fetchmany(size)
+
+        return self._cursor.fetchmany()
+
+    def fetchall(self):
         """
         Retrieves an iterator for the results of the most recently
         executed query.
@@ -126,7 +152,7 @@ class PostgresAdapter(SQLDBAdapter):
         if not self._cursor:
             raise Exception('Not connected to the database.')
 
-        return self._cursor.fecthall()
+        return self._cursor.fetchall()
 
     def disconnect(self):
         """
