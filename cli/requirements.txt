@@ -1,0 +1,3 @@
+stompest==2.3.0
+mysqlclient==1.4.2.post1
+psycopg2==2.8.3
