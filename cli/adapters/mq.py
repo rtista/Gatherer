@@ -1,5 +1,5 @@
 # Own Imports
-from .adapter import MQAdapter
+from .abstract import MQAdapter
 
 # Third Party Imports
 from stompest.sync import Stomp
@@ -8,7 +8,7 @@ from stompest.protocol.spec import StompSpec
 
 class StompMQAdapter:
     """
-    Represents a Message Queueing adapter, an object 
+    Represents a Message Queueing adapter, an object
     capable of interacting with a MQ system via Stomp protocol.
     """
 
@@ -25,7 +25,7 @@ class StompMQAdapter:
             stomp_version (str): The Stomp protocol version ot be used.
             headers (dict, optional): Defaults to {}. The headers to be used in the connection.
         """
-        self.client = Stomp(StompConfig('tcp://{}:{}'.format(host, port), 
+        self.client = Stomp(StompConfig('tcp://{}:{}'.format(host, port),
                             version=version))
 
         # Assign mandatory ID_HEADER if version above 1.1
@@ -39,7 +39,7 @@ class StompMQAdapter:
     def connect(self):
         """
         Connects to the MQ system via Stomp protocol.
-        
+
         Raises:
             StompConnectTimeout: Could not connect to STOMP socket.
         """
@@ -48,7 +48,7 @@ class StompMQAdapter:
     def subscribe(self, queue):
         """
         Subscribes to a queue in the MQ system.
-        
+
         Args:
             queue (str): The queue to subscribe to.
         """
@@ -57,11 +57,11 @@ class StompMQAdapter:
     def queue(self, queue, message):
         """
         Sends a message to the specified queue.
-        
+
         Args:
             queue (str): The queue to where the message should be queued.
             message: The message to be queued.
-        
+
         Raises:
             NotImplementedError: Implement this method on a child class.
         """
@@ -70,7 +70,7 @@ class StompMQAdapter:
     def retrieve(self):
         """
         Retrieves a message from the subscription (queue).
-        
+
         Returns:
             object: The message to be consumed or None if the queue is empty.
         """
@@ -82,7 +82,7 @@ class StompMQAdapter:
     def ack(self, message):
         """
         Acknowledges the consumption of the given message.
-        
+
         Args:
             message ([type]): The message to be acknowledged.
         """
@@ -91,7 +91,7 @@ class StompMQAdapter:
     def nack(self, message):
         """
         Not-acknowledges the consumption of the given message.
-        
+
         Args:
             message ([type]): The message to be not-acknowledged.
         """
