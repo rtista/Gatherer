@@ -92,7 +92,7 @@ class SQLDBAdapter(object):
     def __init__(self, host, port, username, password):
         """
         Creates a SQLDBAdapter instance.
-        
+
         Args:
             host (str): The hostname or IP address for the DB instance.
             port (int): The port to which to connect.
@@ -156,14 +156,21 @@ class SQLDBAdapter(object):
         """
         raise NotImplementedError('Method not implemented.')
 
-    def fecthone(self):
+    def fetchone(self):
         """
         Retrieves one row for the results of the most recently
         executed query.
         """
         raise NotImplementedError('Method not implemented.')
 
-    def fecthall(self):
+    def fetchmany(self, size):
+        """
+        Retrieves 'size' rows for the results of the most recently
+        executed query.
+        """
+        raise NotImplementedError('Method not implemented.')
+
+    def fetchall(self):
         """
         Retrieves an iterator for the results of the most recently
         executed query.

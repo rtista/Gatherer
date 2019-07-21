@@ -1,1 +1,2 @@
-from .stomp import StompMQAdapter
+from .mq import StompMQAdapter
+from .sql import PostgresAdapter
