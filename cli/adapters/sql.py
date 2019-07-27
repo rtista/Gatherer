@@ -1,6 +1,10 @@
 # Third-party imports
+
+# Postgres Driver
 import psycopg2
 import psycopg2.extras
+
+# MySQL/MariaDB Driver
 import MySQLdb
 
 # Local imports
@@ -167,5 +171,125 @@ class PostgresAdapter(SQLDBAdapter):
         if not self._cursor:
             raise Exception('Not connected to the database.')
 
+        self._cursor.close()
+        self._connection.close()
+
+
+class MysqlAdapter(SQLDBAdapter):
+    """
+    Provides a simple API for a MySQL database.
+
+    Args:
+        SQLDBAdapter (class): An adapter for SQL based databases.
+    """
+    def __init__(self, host, username, password=None, port=3306):
+        """
+        Creates a MysqlAdapter instance.
+
+        Args:
+            host (str): The hostname or IP address for the DB instance.
+            port (int, optional): The port to which to connect. Defaults to 3306.
+            username (str): The username to be used in authentication.
+            password (str, optional): The password to be used in authentication. Defaults to None.
+        """
+        super().__init__(host, port, username, password)
+
+    def isconnected(self):
+        """
+        Returns whether the connection to the database is alive.
+
+        Raises:
+            NotImplementedError: When the method is not implemented.
+        """
+        pass
+
+    def connect(self, dbname, autocommit=False):
+        """
+        Connects to the database instance in the given 'dbname'.
+
+        Args:
+            dbname (str): The name of the database to connect to.
+            autocommit (bool, optional): Transaction auto-commit value. Defaults to False.
+
+        Raises:
+            NotImplementedError: When the method is not implemented.
+        """
+        self._connection = MySQLdb.Connection(
+            host=self._host, port=self._port,
+            user=self._username, passwd=self._password,
+            )
+
+        self._connection.autocommit(autocommit)
+
+        self._cursor = self._connection.cursor()
+
+    def execute(self, query):
+        """
+        Executes an SQL query against the database.
+
+        Args:
+            query (str): The query to be executed.
+
+        Raises:
+            NotImplementedError: When the method is not implemented.
+        """
+        self._cursor.execute(query)
+
+    def executemany(self, query, values):
+        """
+        Executes a bulk SQL query against the database.
+
+        Args:
+            query (str): The query to be executed.
+            values (tuple): Tuple of tuples of values to be replaced in the query.
+
+        Raises:
+            NotImplementedError: When the method is not implemented.
+        """
+        self._cursor.executemany(query, values)
+
+    def commit(self):
+        """
+        Commits changes to the database, making them persistent.
+
+        Raises:
+            NotImplementedError: When the method is not implemented.
+        """
+        self._connection.commit()
+
+    def fetchone(self):
+        """
+        Retrieves one row for the results of the most recently
+        executed query.
+
+        Returns:
+            iterable: The results.
+        """
+        return self._cursor.fecthone()
+
+    def fetchmany(self, size=None):
+        """
+        Retrieves 'size' rows for the results of the most recently
+        executed query.
+
+        Returns:
+            iterable: The results.
+        """
+        return self._cursor.fetchmany(size)
+
+    def fetchall(self):
+        """
+        Retrieves an iterator for the results of the most recently
+        executed query.
+
+        Returns:
+            iterable: The results.
+        """
+        return self._cursor.fetchall()
+
+    def disconnect(self):
+        """
+        Disconnects from the database instance.
+        """
         self._cursor.close()
         self._connection.close()
