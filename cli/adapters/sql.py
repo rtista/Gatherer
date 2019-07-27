@@ -39,7 +39,7 @@ class PostgresAdapter(SQLDBAdapter):
 
         return False
 
-    def connect(self, dbname):
+    def connect(self, dbname, autocommit=False):
         """
         Connects to the database instance in the given 'dbname'.
 
@@ -53,6 +53,8 @@ class PostgresAdapter(SQLDBAdapter):
             host=self._host, port=self._port,
             user=self._username, password=self._password,
             dbname=dbname)
+
+        self._connection.autocommit = autocommit
 
         # Create cursor upon connecting
         self._cursor = self._connection.cursor()
