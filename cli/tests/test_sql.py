@@ -1,6 +1,6 @@
 # Third-party Imports
 from psycopg2 import OperationalError
-from psycopg2.errors import SyntaxError, InvalidTextRepresentation
+from psycopg2.errors import SyntaxError, InvalidTextRepresentation, DuplicateSchema
 
 # Batteries
 from unittest import TestCase
@@ -20,6 +20,40 @@ class TestPostgresAdapter(TestCase):
 
     # PostgresAdapter instance
     adapter = None
+
+    def setUpClass():
+        """
+        Creates 'test' schema required for the tests.
+        """
+        adapter = PostgresAdapter('127.0.0.1', 'postgres')
+        adapter.connect('postgres')
+        try:
+            adapter.execute('CREATE SCHEMA test;')
+            adapter.execute('CREATE TABLE test.account( '
+                                    'user_id serial PRIMARY KEY, '
+                                    'username VARCHAR (50) NOT NULL, '
+                                    'password VARCHAR (50) NOT NULL, '
+                                    'email VARCHAR (355) NOT NULL, '
+                                    'created_on TIMESTAMP NOT NULL, '
+                                    'last_login TIMESTAMP);')
+            adapter.commit()
+
+        except DuplicateSchema:
+                print('Test schema already created.')
+
+        adapter.disconnect()
+
+    def tearDownClass():
+        """
+        Drops 'test' schema required for the tests.
+        """
+        adapter = PostgresAdapter('127.0.0.1', 'postgres')
+        adapter.connect('postgres')
+
+        adapter.execute('DROP TABLE test.account')
+        adapter.execute('DROP SCHEMA test')
+        adapter.commit()
+        adapter.disconnect()
 
     def setUp(self):
         """
@@ -90,7 +124,7 @@ class TestPostgresAdapter(TestCase):
         """
         Tests bulk query execution success scenario.
         """
-        self.adapter.connect('test')
+        self.adapter.connect('postgres')
 
         # Create three new entries
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -100,18 +134,18 @@ class TestPostgresAdapter(TestCase):
             ('jane', 'janepassword', 'janedoe@domain.com', now)
         )
 
-        self.adapter.executemany('INSERT INTO account(username, password, email, created_on, last_login) VALUES (%s, %s, %s, %s, NULL)', values)
+        self.adapter.executemany('INSERT INTO test.account(username, password, email, created_on, last_login) VALUES (%s, %s, %s, %s, NULL)', values)
         self.adapter.commit()
 
         # Check new entry count
-        self.adapter.execute("""SELECT count(1) FROM account WHERE created_on = timestamp '{}'""".format(now))
+        self.adapter.execute("""SELECT count(1) FROM test.account WHERE created_on = timestamp '{}'""".format(now))
         self.assertTrue(int(self.adapter.fetchone()[0]) == len(values))
 
     def test_executemany_syntax_failure(self):
         """
         Tests bulk query execution failure scenario due to wrong syntax.
         """
-        self.adapter.connect('test')
+        self.adapter.connect('postgres')
 
         # Create three new entries
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -122,16 +156,16 @@ class TestPostgresAdapter(TestCase):
         )
 
         with self.assertRaises(InvalidTextRepresentation):
-            self.adapter.executemany('INSERT INTO account VALUES (%s, %s, %s, %s, NULL)', values)
+            self.adapter.executemany('INSERT INTO test.account VALUES (%s, %s, %s, %s, NULL)', values)
 
     def test_fetchone_success(self):
         """
         Tests successful retrieval of one result from the query results.
         """
-        self.adapter.connect('test')
+        self.adapter.connect('postgres')
 
         # Select one entry from the table
-        self.adapter.execute('SELECT * FROM account LIMIT 1')
+        self.adapter.execute('SELECT * FROM test.account LIMIT 1')
         entry = self.adapter.fetchone()
 
         # Check number of columns
@@ -141,9 +175,9 @@ class TestPostgresAdapter(TestCase):
         """
         Tests successful retrieval of an empty set from a query result.
         """
-        self.adapter.connect('test')
+        self.adapter.connect('postgres')
 
-        self.adapter.execute('SELECT * FROM account LIMIT 0')
+        self.adapter.execute('SELECT * FROM test.account LIMIT 0')
         entry = self.adapter.fetchone()
 
         self.assertIsNone(entry)
@@ -152,9 +186,9 @@ class TestPostgresAdapter(TestCase):
         """
         Tests retrieval of several results from a query.
         """
-        self.adapter.connect('test')
+        self.adapter.connect('postgres')
 
-        self.adapter.execute('SELECT * FROM account')
+        self.adapter.execute('SELECT * FROM test.account')
 
         entries = 0
         for _ in self.adapter.fetchmany(2):
@@ -166,9 +200,9 @@ class TestPostgresAdapter(TestCase):
         """
         Tests retrieval of all results from a query.
         """
-        self.adapter.connect('test')
+        self.adapter.connect('postgres')
 
-        self.adapter.execute('SELECT * FROM account LIMIT 3')
+        self.adapter.execute('SELECT * FROM test.account LIMIT 3')
 
         entries = 0
         for _ in self.adapter.fetchall():
