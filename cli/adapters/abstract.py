@@ -113,9 +113,13 @@ class SQLDBAdapter(object):
         """
         raise NotImplementedError('Method not implemented.')
 
-    def connect(self):
+    def connect(self, dbname, autocommit=False):
         """
-        Connects to the database instance.
+        Connects to the database instance in the given database name.
+
+        Args:
+            dbname (str): The name of the database to connect to.
+            autocommit (bool, optional): Transaction auto-commit value. Defaults to False.
 
         Raises:
             NotImplementedError: When the method is not implemented.
@@ -160,6 +164,9 @@ class SQLDBAdapter(object):
         """
         Retrieves one row for the results of the most recently
         executed query.
+
+        Returns:
+            iterable: The results.
         """
         raise NotImplementedError('Method not implemented.')
 
@@ -167,6 +174,9 @@ class SQLDBAdapter(object):
         """
         Retrieves 'size' rows for the results of the most recently
         executed query.
+
+        Returns:
+            iterable: The results.
         """
         raise NotImplementedError('Method not implemented.')
 
@@ -174,6 +184,9 @@ class SQLDBAdapter(object):
         """
         Retrieves an iterator for the results of the most recently
         executed query.
+
+        Returns:
+            iterable: The results.
         """
         raise NotImplementedError('Method not implemented.')
 
